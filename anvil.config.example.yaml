@@ -1,0 +1,12 @@
+# Copy into your agent's directory as anvil.config.yaml and edit.
+# Verify the model slugs below are still current in Groq's docs before relying on this default.
+
+name: my_agent
+planner_model: "llama-3.3-70b-versatile"
+executor_model: "llama-3.3-70b-versatile"
+max_retries: 3
+memory_top_k: 5
+halt_on_failure: true
+allow_shell_tool: false
+shell_jail_dir: null              # required if allow_shell_tool is true
+shell_timeout_seconds: 30

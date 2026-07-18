@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "anvil-agent"
+version = "0.1.0"
+description = "A local-first Python agent framework: tool-calling, memory, and multi-step planning."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Mughees Siddiqui" }]
+keywords = ["agents", "llm", "groq", "chromadb", "ai-agents", "tool-calling"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "groq>=0.11",
+    "chromadb>=0.5",
+    "pydantic>=2.7",
+    "typer>=0.12",
+    "rich>=13.7",
+    "python-dotenv",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-mock",
+    "ruff",
+]
+
+[project.scripts]
+anvil = "anvil.cli.main:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/anvil"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
