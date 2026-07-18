@@ -35,6 +35,10 @@ dev = [
     "pytest-mock",
     "ruff",
 ]
+web = [
+    "fastapi",
+    "uvicorn",
+]
 
 [project.scripts]
 anvil = "anvil.cli.main:app"

@@ -214,5 +214,23 @@ def _list_traces() -> None:
     _console.print(table)
 
 
+@trace_app.command("web")
+def trace_web(
+    port: int = typer.Option(8420, "--port", help="Port to run the dashboard on."),
+) -> None:
+    """Launch the Trace Dashboard web interface."""
+    import sys
+    sys.path.insert(0, str(Path.cwd()))
+    try:
+        import uvicorn
+        from web.backend.api import app as fastapi_app
+    except ImportError:
+        _console.print(Text("Web dependencies not found. Install with: pip install '.[web]'", style="red bold"))
+        raise typer.Exit(1)
+
+    _console.print(Text(f"Starting Trace Dashboard on http://localhost:{port}", style="green bold"))
+    uvicorn.run(fastapi_app, host="127.0.0.1", port=port)
+
+
 if __name__ == "__main__":
     app()
