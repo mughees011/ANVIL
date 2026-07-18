@@ -4,30 +4,54 @@
 
 @layer base {
   body {
-    @apply bg-bgBase text-textPrimary antialiased selection:bg-accentCyan/30;
+    background-color: #0A0B0C;
+    color: #E8E6E1;
+    font-family: 'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
     margin: 0;
     min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background-color: rgba(61, 220, 151, 0.3);
+    color: #3DDC97;
   }
 }
 
 @layer components {
-  .glass-panel {
-    @apply bg-bgPanel backdrop-blur-xl border border-white/5 shadow-2xl;
+  .instrument-panel {
+    @apply bg-bgPanel border border-line rounded-sm;
   }
-  
-  .glass-card {
-    @apply bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-xl shadow-lg hover:border-white/20 transition-colors duration-200;
+
+  .gauge-card {
+    @apply bg-bgPanel border border-line rounded-sm p-4 hover:border-signal;
+    transition: border-color 0s;
   }
 
   .nav-item {
-    @apply flex items-center gap-3 px-4 py-2 rounded-lg text-textMuted hover:text-textPrimary hover:bg-white/5 transition-all duration-200;
-  }
-  
-  .nav-item.active {
-    @apply text-accentCyan bg-accentCyan/10 font-medium;
+    @apply flex items-center gap-3 px-4 py-2;
+    color: #8A8F94;
+    transition: color 0s;
   }
 
-  .stat-card {
-    @apply glass-card p-6 flex flex-col items-center justify-center text-center gap-2;
+  .nav-item:hover {
+    color: #3DDC97;
+  }
+
+  .nav-item.active {
+    color: #E8E6E1;
+    font-weight: 500;
+    border-left: 2px solid #3DDC97;
+    background-color: rgba(61, 220, 151, 0.05);
+  }
+
+  .mono-label {
+    @apply font-mono text-xs uppercase tracking-wider;
+    color: #8A8F94;
   }
 }

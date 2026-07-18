@@ -61,7 +61,7 @@ function App() {
 
   return (
     <div 
-      className={`min-h-screen relative flex ${isDragging ? 'bg-accentCyan/5' : ''}`}
+      className={`min-h-screen relative flex ${isDragging ? 'bg-signal/5' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -69,20 +69,16 @@ function App() {
       <Sidebar currentView={currentView} onViewChange={setCurrentView} />
       
       <main className="flex-1 ml-64 p-8 relative">
-        {/* Glow Effects */}
-        <div className="fixed top-0 left-1/4 w-96 h-96 bg-accentCyan/20 rounded-full blur-[120px] -z-10 pointer-events-none" />
-        <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-accentPurple/20 rounded-full blur-[120px] -z-10 pointer-events-none" />
-
         <div className="max-w-6xl mx-auto space-y-6">
-          <header className="flex justify-between items-center bg-bgPanel/50 backdrop-blur-md border border-white/5 p-4 rounded-xl">
-            <div className="text-textMuted flex items-center gap-2">
-              <span className="font-medium text-white">Dashboard</span>
+          <header className="flex justify-between items-center instrument-panel px-4 py-3">
+            <div className="text-inkMuted flex items-center gap-2 font-mono text-sm">
+              <span className="text-ink">INSTRUMENT</span>
               <span>/</span>
-              <span className="capitalize">{currentView.replace('-', ' ')}</span>
+              <span className="uppercase text-signal">{currentView.replace('-', ' ')}</span>
             </div>
             <div>
-              <label className="cursor-pointer bg-accentCyan/10 text-accentCyan hover:bg-accentCyan hover:text-bgBase transition-all duration-300 font-medium px-4 py-2 rounded-lg flex items-center gap-2 text-sm shadow-[0_0_10px_rgba(34,211,238,0.2)]">
-                <span>+ Load Trace</span>
+              <label className="cursor-pointer border border-signal text-signal hover:bg-signal hover:text-bgBase transition-colors duration-0 font-mono text-xs px-3 py-1.5 rounded-sm flex items-center gap-2">
+                <span>LOAD_TRACE</span>
                 <input 
                   type="file" 
                   accept=".json" 
@@ -105,11 +101,10 @@ function App() {
       </main>
 
       {isDragging && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none border-4 border-dashed border-accentCyan/50 m-4 rounded-2xl">
-          <div className="text-center p-12 glass-panel rounded-2xl">
-            <div className="text-6xl text-accentCyan mb-4 animate-bounce">◈</div>
-            <h2 className="text-2xl font-bold text-white mb-2">Drop Trace Files</h2>
-            <p className="text-accentCyan/80">Release to load JSON trace files</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-bgBase/80 pointer-events-none border border-signal m-4">
+          <div className="text-center font-mono">
+            <div className="text-2xl text-signal mb-2 animate-pulse">AWAITING_INPUT</div>
+            <p className="text-inkMuted text-sm">RELEASE TO PARSE SEQUENCE</p>
           </div>
         </div>
       )}
