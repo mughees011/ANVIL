@@ -123,7 +123,38 @@ END -> returns final AgentResult(status, output_summary, trace_path)
 
 ---
 
-## 5. Example Agent Flows
+## 6. Trace Dashboard Flow (Post-Core, Phase 16)
+
+Resolves PRD §7.8. This is a separate, optional journey layered on top of everything in §1-5 — it visualizes what the CLI already produces, it doesn't change the core loop at all.
+
+```
+1. `pip install anvil-agent[web]`   -> pulls in FastAPI/uvicorn, only if this extra is requested
+2. `anvil trace web --port 8420`
+     -> starts local FastAPI server, binds to localhost only
+     -> serves the built React dashboard at http://localhost:8420
+     -> opens the default browser to that URL automatically
+3. Dashboard loads -> calls GET /api/runs -> renders Overview + Runs list
+4. Developer clicks a run -> calls GET /api/runs/{run_id} -> renders Plan & Trace view
+5. Developer clicks Memory tab -> calls GET /api/agents/{agent_name}/memory -> renders entries
+6. Ctrl+C in terminal stops the server
+```
+
+**No-server path (same dashboard, zero backend):**
+```
+1. Developer opens the built dashboard's index.html directly (double-click, or any static file server)
+2. Drags a .anvil/runs/{run_id}.json file onto the drop zone
+3. Dashboard parses it client-side and renders the same views as the live-server path
+```
+
+Both paths render through identical UI components — the only difference is where the JSON comes from. CLI command surface addition to the table in §2:
+
+| Command | Behavior |
+|---|---|
+| `anvil trace web [--port 8420]` | Starts the local FastAPI server (requires the `web` extra installed) and opens the dashboard in the default browser. |
+
+---
+
+## 7. Example Agent Flows
 
 **Research Agent** (`anvil run research_agent "What caused the 2008 financial crisis?"`):
 ```

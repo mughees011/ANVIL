@@ -42,14 +42,16 @@ ZAIRE's Engineer Mode already solved a real version of this problem for one narr
 6. Documentation good enough that a stranger can install, run an example, and build their own tool in under 15 minutes.
 7. Get this to a public GitHub repo with a real README, real examples, real tests — worth 20-30 stars on its own merit.
 
-## 4. Non-Goals (v1)
+## 4. Non-Goals (v1 Core)
 
 - Multi-provider LLM support (OpenAI/Anthropic/local models) — explicitly deferred.
 - Multi-agent collaboration / agent-to-agent messaging — not v1. Single-agent, multi-step only.
-- A hosted/cloud version, dashboard, or UI. This is a library, imported like any Python package.
+- A hosted/cloud, multi-user, or always-on server product. Anvil's core remains a library, imported like any Python package — the optional Trace Dashboard (§7.8) is a local, single-user visualization tool for that library's output, not a hosted service.
 - Distributed execution, queues, or async job workers.
 - Fine-tuning or training anything. Anvil orchestrates a frontier model via API; it doesn't train one.
 - Windows-specific packaging (ZAIRE is the Windows desktop app; Anvil is the reusable engine, OS-agnostic).
+
+**Revision note:** the original draft of this section listed "dashboard or UI" as fully out of scope. That's been narrowed, not reversed — see §7.8: a local trace-visualization dashboard is now in scope, but explicitly as a *post-core, optional companion tool* (built after Phases 1-11 of the core framework are done), not a v1-blocking feature and not a hosted product.
 
 ---
 
@@ -120,6 +122,15 @@ Two agents, deliberately in **different domains** so the framework's generality 
 - Installable via `pip install -e .` locally for v1; PyPI publish is a stretch goal, not required for launch.
 - MIT License (default assumption — flag if you want something else, e.g. Apache-2.0).
 - Test suite (`pytest`) covering: tool registry validation, planner output shape, memory read/write, self-heal retry logic (mocked Groq responses — tests should not require a live API key to run in CI).
+
+### 7.8 Trace Dashboard (Web UI) — Post-Core Companion Tool
+
+A local, single-user web dashboard for visualizing run traces — the productized version of the prototype already built (Overview, Runs, Plan & Trace, Memory, Architecture views). Explicitly scoped as **optional and built after the core framework is complete** (Implementation Plan Phase 16, not part of Phases 1-11) — the core library must work standalone with zero dependency on this dashboard ever being built or running.
+
+- **Two data-access modes, both supported:** (1) drag-and-drop a trace JSON file directly in the browser — pure client-side, no server required, works from a static build; (2) `anvil trace web` starts a local FastAPI server that auto-reads from `.anvil/runs/` and serves live data. Both modes render through the same UI components — the dashboard doesn't know or care which mode supplied the data.
+- **Views:** Overview (aggregate stats — successful runs, self-heals, tool calls, memory entries; latest run summary), Runs (list/browse past runs), Plan & Trace (step-by-step breakdown of one run, mirroring the CLI's verbose trace structure), Memory (browse episodic/semantic entries for an agent), Architecture (the same diagram from UI/UX Brief §5, rendered rather than ASCII).
+- **Explicitly not in scope for this feature:** authentication, multi-user access, remote/hosted deployment, editing or re-running tasks from the dashboard (read-only visualization only, v1).
+- Full technical spec: TRD §13, Backend Schema §7, App Flow §6, UI/UX Brief §7.
 
 ---
 

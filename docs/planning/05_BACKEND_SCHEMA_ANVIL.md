@@ -123,7 +123,49 @@ This is the entirety of the "auth flow" — there is no session, no token refres
 
 ---
 
-## 6. Explicit Non-Goals for This Schema
+## 7. Trace Dashboard API Schema (Post-Core, Phase 16)
+
+Resolves PRD §7.8 / TRD §13. All endpoints are read-only, served by the optional FastAPI app, bound to `localhost` only.
+
+**`GET /api/runs`** — list summaries (not full traces, keeps this endpoint fast even with hundreds of runs on disk):
+```json
+[
+  {
+    "run_id": "string (uuid)",
+    "agent_name": "string",
+    "task": "string",
+    "final_status": "success | failed",
+    "started_at": "ISO8601 string"
+  }
+]
+```
+
+**`GET /api/runs/{run_id}`** — full trace, identical shape to the on-disk file. No reshaping:
+```
+Same schema as .anvil/runs/{run_id}.json, defined in §4 above.
+```
+
+**`GET /api/agents/{agent_name}/memory?collection=episodic|semantic&limit=50`** — paginated, most-recent-first browse:
+```json
+[
+  {
+    "id": "string (uuid)",
+    "document": "string",
+    "metadata": { "...": "as defined in §2 for the relevant collection" }
+  }
+]
+```
+
+**Error shape** (consistent across all endpoints):
+```json
+{ "error": "string (human-readable)", "status_code": "integer" }
+```
+
+No other endpoints in v1 — no POST/PUT/DELETE, no run-triggering, no auth. If `run_id` or `agent_name` doesn't exist on disk, return `404` with the error shape above, not a silent empty response.
+
+---
+
+## 8. Explicit Non-Goals for This Schema
 
 - No relational database, no ORM, no migrations system — would be over-engineering for a local single-user library.
 - No user accounts, sessions, or roles — not applicable to a CLI tool run by one developer on one machine.

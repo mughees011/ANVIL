@@ -114,8 +114,39 @@ This exact diagram (or a visually equivalent generated image) must appear in the
 
 ---
 
-## 6. Non-Goals for This Brief
+## 7. Trace Dashboard Visual Design (Post-Core, Phase 16)
 
-- No web dashboard, no GUI mockups — explicitly out of scope (PRD §4).
+Resolves PRD §7.8. This section governs the React dashboard specifically — it's a real GUI, so it gets a real design spec, same rigor as the terminal spec above, not left ad hoc.
+
+### 7.1 Palette
+Dark-glass base, consistent with the prototype already built — formalized as design tokens rather than eyeballed per component:
+
+| Token | Hex (approx, adjust in implementation) | Usage |
+|---|---|---|
+| `--bg-base` | `#0A0B0E` | Page background |
+| `--bg-panel` | `#12141A` (semi-transparent, glass effect) | Cards, sidebar |
+| `--accent-cyan` | `#22D3EE` | Primary actions, active nav item, info states |
+| `--accent-purple` | `#A855F7` | Logo gradient, memory-related UI (echoes the terminal's magenta memory color) |
+| `--accent-green` | `#22C55E` | Success states |
+| `--accent-amber` | `#F59E0B` | Self-heal / retry states |
+| `--text-primary` | `#F1F5F9` | Headings, primary text |
+| `--text-muted` | `#64748B` | Labels, secondary text |
+
+This is a distinct palette from ZAIRE's exact hex values (per the original design principle in §1 — separate open-source identity), but intentionally similar in spirit: dark, glass, cyan-forward.
+
+### 7.2 Layout Pattern
+Fixed left sidebar (logo + nav: Overview, Runs, Plan & Trace, Memory, Architecture) + main content area, matching the structure already built. Stat cards use large colored numerals with a muted label beneath — keep this pattern for any new stat additions rather than inventing a new card style.
+
+### 7.3 Status Color Reuse
+The dashboard's status indicators must reuse the exact color-to-meaning mapping from §2 (terminal vocabulary), not a separate scheme — e.g. a "SUCCESS" badge is `--accent-green`, a step that triggered self-healing shows `--accent-amber`, consistent with the CLI's `↻` yellow retry line. One user, two surfaces, one learned color vocabulary.
+
+### 7.4 Typography
+Sans-serif throughout (the prototype's font is fine — e.g. Inter or system-ui stack), with monospace (`ui-monospace` / `JetBrains Mono`) reserved specifically for: run IDs, file paths, JSON snippets, and trace file names — anything that's literally code or an identifier, mirroring how the terminal output distinguishes prose from data.
+
+---
+
+## 8. Non-Goals for This Brief
+
+- The web dashboard (§7) is now in scope as a post-core companion tool — this line originally excluded it entirely; superseded by PRD §7.8 and TRD §13. What remains out of scope: any *hosted/multi-user* GUI, and any mockup work beyond §7's token-level spec (no per-screen Figma-style mockups produced here — §7's tokens + the layout pattern already built are considered sufficient direction).
 - No custom docs site (e.g. Docusaurus) required for v1 — plain Markdown in `docs/` rendered by GitHub is sufficient until traction justifies more.
-- No logo/brand mark required for launch — a text wordmark ("Anvil") in the README is enough; revisit only if the project gains real traction.
+- No logo/brand mark required for launch beyond the dashboard's existing wordmark + gradient icon (already built) — a text wordmark ("Anvil") in the README is enough for the GitHub-facing side; revisit only if the project gains real traction.

@@ -190,8 +190,55 @@ Full schema lives in Backend Schema §3. Summary: `anvil.config.yaml` per agent 
 
 ---
 
-## 12. Explicit Assumptions Made in This Draft
+## 13. Trace Dashboard — Stack & Architecture (Post-Core, Phase 16)
+
+Resolves the scope addition from PRD §7.8. Kept as its own section, deliberately separable — nothing in Phases 1-11 (the core library) depends on any of this.
+
+### 13.1 Stack
+
+| Layer | Choice | Why |
+|---|---|---|
+| Frontend framework | React 18 + Vite | Fast dev server, matches ZAIRE's frontend stack for consistency across your projects. |
+| Language | TypeScript | Catches integration bugs against the trace JSON shape (Backend Schema §4) at compile time. |
+| Styling | Tailwind CSS | Matches the existing prototype's dark-glass aesthetic; no custom CSS framework needed. |
+| Charts/stats | Recharts | Lightweight, matches PRD's "no heavy dependency" philosophy. |
+| Icons | `lucide-react` | Matches the diamond/arrow symbol vocabulary already established in UI/UX Brief §2. |
+| Local API server (optional) | FastAPI + `uvicorn` | Only pulled in via the `web` extra (`pip install anvil-agent[web]`) — the core library has zero dependency on this. |
+
+### 13.2 Package Layout Addition
+
+```
+anvil/
+├── web/
+│   ├── frontend/                   # React + Vite + TS app
+│   │   ├── src/
+│   │   ├── package.json
+│   │   ├── vite.config.ts
+│   │   └── tailwind.config.js
+│   └── backend/
+│       └── api.py                  # FastAPI app: serves built frontend + read-only trace API
+```
+
+Lives in its own `web/` directory, separate from `src/anvil/` — the Python package that ships to PyPI does **not** bundle the frontend source, only (optionally) the built static files if the `web` extra is installed.
+
+### 13.3 API Server (`web/backend/api.py`)
+
+- `GET /api/runs` — list all trace summaries from `.anvil/runs/` (run_id, agent_name, task, final_status, started_at — not the full trace, keeps the list endpoint fast).
+- `GET /api/runs/{run_id}` — full trace JSON for one run, identical shape to the on-disk file (Backend Schema §4) — the API does not reshape or rename fields, it serves the file's contents directly.
+- `GET /api/agents/{agent_name}/memory` — read-only browse of that agent's episodic/semantic ChromaDB collections (paginated, top N by recency — not a search endpoint in v1).
+- Serves the built frontend's static files at `/`.
+- **Read-only.** No POST/PUT/DELETE endpoints in v1 — the dashboard cannot trigger runs, edit traces, or modify memory. This keeps the "local single-user tool" framing honest and avoids needing any auth layer.
+- Started via `anvil trace web [--port 8420]` (CLI addition — see App Flow §6). Binds to `localhost` only, never `0.0.0.0`, in v1 — this is a local dev tool, not something meant to be exposed on a network.
+
+### 13.4 Drag-and-Drop Mode (No Server)
+
+The built frontend must work standalone (open `index.html` directly, or serve it with any static file server) with zero backend — trace JSON dropped into the browser is parsed and rendered entirely client-side. This is the fallback that makes the dashboard usable even for someone who doesn't want to `pip install` the `web` extra at all; they can just open the built static site and drop in a trace file a teammate sent them.
+
+---
+
+## 14. Explicit Assumptions Made in This Draft
 
 - Groq model default set to `llama-3.3-70b-versatile` — confirm this is still the model you want; Groq's available models may have changed since this was drafted, and this should be re-verified at build time rather than trusted from this doc.
-- No async support in v1 (`Executor` runs steps synchronously, sequentially) — flagged as a fast-follow, not blocking launch.
+- No async support in v1 core (`Executor` runs steps synchronously, sequentially) — flagged as a fast-follow, not blocking launch. (The FastAPI dashboard server in §13 is async internally, but that's independent of the core Executor's sync design.)
 - PyPI publishing intentionally deferred; `pip install -e .` from GitHub is the v1 install path.
+- Dashboard port default (`8420`) is arbitrary — change freely, just keep it documented consistently across the CLI help text and README once built.

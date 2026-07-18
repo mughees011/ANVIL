@@ -92,6 +92,16 @@
 - Tag `v0.1.0`, push public repo.
 - **Done when:** repo is public, README is the front page, both example agents work from a completely clean environment, and the "20-30 stars" success metric (PRD §8) is a matter of organic sharing from here, not further building.
 
+## Phase 16 — Trace Dashboard (v0.2, Post-Core)
+**Do not start this phase until Phase 15 is tagged and released.** The core framework must ship and stand on its own first — the dashboard is additive, not load-bearing.
+- Scaffold `web/frontend/` (React + Vite + TS + Tailwind, per TRD §13.1-13.2) and `web/backend/api.py` (FastAPI, per TRD §13.3).
+- Build the four read-only endpoints (`/api/runs`, `/api/runs/{run_id}`, `/api/agents/{agent_name}/memory`, static file serving) exactly per Backend Schema §7 — no extra endpoints, no write operations.
+- Build the five dashboard views (Overview, Runs, Plan & Trace, Memory, Architecture) using the token/layout spec in UI/UX Brief §7 — reuse, don't reinvent, the color vocabulary from §2.
+- Implement drag-and-drop mode first (client-side only, no backend dependency), then the live-server mode (`anvil trace web`) — this order means the dashboard is independently testable against real trace JSON before the API server exists at all.
+- Add `anvil trace web [--port 8420]` to the CLI (App Flow §6).
+- Publish the `web` extra: `pip install anvil-agent[web]` pulls in FastAPI/uvicorn; base install does not.
+- **Done when:** `anvil trace web` launches the dashboard against real `.anvil/runs/` data end-to-end, AND the built static dashboard also works standalone via drag-and-drop with zero server running — both paths tested, not just one. Tag `v0.2.0` separately from `v0.1.0`.
+
 ---
 
 ## Explicit Ordering Rationale (So the Sequence Isn't Reordered by Mistake)
