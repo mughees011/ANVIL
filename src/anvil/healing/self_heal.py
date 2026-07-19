@@ -118,9 +118,14 @@ class SelfHealingEngine:
                 registry=registry,
                 failure_context=failure_context,
             )
+            
+            updated_step = updated_plan.steps[0] if updated_plan.steps else step
+            if updated_step is not step:
+                updated_step.retry_count = step.retry_count
+
             return HealingResult(
                 should_retry=True,
-                updated_step=updated_plan.steps[0] if updated_plan.steps else step,
+                updated_step=updated_step,
                 updated_plan=updated_plan,
                 failure_reason=failure_context,
             )

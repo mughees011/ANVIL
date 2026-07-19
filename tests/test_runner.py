@@ -24,11 +24,19 @@ def test_runner_end_to_end_success(mocker, test_config):
     plan_json = json.dumps({
         "steps": [
             {
+                "id": "step_1",
                 "description": "Step 1: Get info",
                 "tool_hint": "example_tool",
                 "depends_on": [],
                 "rubric": None,
-            }
+            },
+            {
+                "id": "step_2",
+                "description": "Step 2: Finish",
+                "tool_hint": "",
+                "depends_on": ["step_1"],
+                "rubric": None,
+            },
         ]
     })
     
@@ -56,7 +64,7 @@ def test_runner_end_to_end_success(mocker, test_config):
     result = runner.run("Do the task")
     
     assert result.status == "success"
-    assert result.output_summary == "Step 1: Get info"
+    assert result.output_summary == "Step 2: Finish"
     assert "trace_path" in result.model_dump()
 
 
@@ -66,6 +74,7 @@ def test_runner_with_self_healing(mocker, test_config):
     plan_json = json.dumps({
         "steps": [
             {
+                "id": "step_1",
                 "description": "Step 1: Flaky step",
                 "tool_hint": "flaky_tool",
                 "depends_on": [],

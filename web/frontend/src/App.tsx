@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Overview } from './views/Overview';
 import { Runs } from './views/Runs';
@@ -37,29 +37,36 @@ function App() {
       });
   }, [API_BASE]);
 
-  const handleFiles = useCallback((files: FileList | File[]) => {
-    Array.from(files).forEach(file => {
-      if (file.type === "application/json" || file.name.endsWith(".json")) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const data = JSON.parse(e.target?.result as string);
-            // Basic validation
-            if (data.run_id && data.plan && data.steps) {
-              setTraces(prev => {
-                // Prevent duplicates
-                if (prev.some(t => t.run_id === data.run_id)) return prev;
-                return [...prev, data as TraceData];
-              });
-            }
-          } catch (err) {
-            console.error("Failed to parse JSON", err);
+const handleFiles = useCallback((files: FileList | File[]) => {
+  Array.from(files).forEach(file => {
+    if (file.type === "application/json" || file.name.endsWith(".json")) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target?.result as string);
+          console.log("Parsed trace file:", data); // TEMP — check the browser console after this
+
+          if (data.run_id && data.plan && data.steps) {
+            setTraces(prev => {
+              if (prev.some(t => t.run_id === data.run_id)) return prev;
+              return [...prev, data as TraceData];
+            });
+            setError(null);
+          } else {
+            console.warn("Missing required fields. Keys found:", Object.keys(data));
+            setError(`Invalid trace file — expected run_id, plan, and steps. Found: ${Object.keys(data).join(", ")}`);
           }
-        };
-        reader.readAsText(file);
-      }
-    });
-  }, []);
+        } catch (err) {
+          console.error("Failed to parse JSON", err);
+          setError("Failed to parse JSON — is the file valid JSON?");
+        }
+      };
+      reader.readAsText(file);
+    } else {
+      setError("Only .json files are supported.");
+    }
+  });
+}, []);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();

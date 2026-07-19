@@ -69,7 +69,14 @@ def load_config(
         ConfigError: If config file is missing, YAML is invalid,
                      Pydantic validation fails, or API key is absent.
     """
-    load_dotenv(dotenv_path=str(dotenv_path), override=False)
+    from dotenv import load_dotenv, find_dotenv
+
+    if str(dotenv_path) == ".env":
+        resolved_dotenv_path = find_dotenv(usecwd=True)
+    else:
+        resolved_dotenv_path = str(dotenv_path)
+
+    load_dotenv(dotenv_path=resolved_dotenv_path, override=False)
 
     config_path = Path(config_path)
     if not config_path.exists():

@@ -70,7 +70,7 @@ def test_generate_plan_empty_steps_raises(registry):
 
 def test_generate_plan_strips_markdown_fences(registry):
     from unittest.mock import MagicMock
-    plan_json = json.dumps({"steps": [{"description": "Step 1", "tool_hint": "", "depends_on": []}]})
+    plan_json = json.dumps({"steps": [{"id": "step_1", "description": "Step 1", "tool_hint": "", "depends_on": []}]})
     client = MagicMock()
     client.chat.return_value = f"```json\n{plan_json}\n```"
     planner = Planner(groq_client=client)

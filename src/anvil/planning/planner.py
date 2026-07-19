@@ -29,9 +29,10 @@ Respond ONLY with a valid JSON object matching this schema:
 {
   "steps": [
     {
+      "id": "<unique string id for step, e.g. step_1>",
       "description": "<what this step does>",
       "tool_hint": "<name of the primary tool to use, or empty string>",
-      "depends_on": ["<step_id of prerequisite step, if any>"],
+      "depends_on": ["<id of prerequisite step, if any>"],
       "rubric": "<optional: a short criterion for LLM-graded quality check, or null>"
     }
   ]
@@ -40,7 +41,8 @@ Respond ONLY with a valid JSON object matching this schema:
 Rules:
 - Use only tools from the provided tool list.
 - tool_hint must exactly match a tool name from the list, or be an empty string.
-- depends_on must reference step indices (0-based) or empty array.
+- Each step must have a unique string id field (e.g. 'step_1', 'step_2', assigned in order).
+- depends_on must be a list containing those same string IDs of any prior steps this one depends on, or an empty list if there are none — never integers or positions.
 - Be concise. 3–7 steps is typical. Avoid redundant steps.
 - Output ONLY the JSON object, no markdown fences, no explanation.
 """
@@ -140,8 +142,10 @@ class Planner:
         for i, raw_step in enumerate(data["steps"]):
             if not isinstance(raw_step, dict):
                 raise PlannerError(f"Step {i} is not a dict: {raw_step}")
+            if "id" not in raw_step or not isinstance(raw_step["id"], str):
+                raise PlannerError(f"Step {i} missing or malformed 'id' string field: {raw_step}")
             if "description" not in raw_step:
-                raise PlannerError(f"Step {i} missing 'description' field: {raw_step}")
+                raise PlannerError(f"Step '{raw_step.get('id', i)}' missing 'description' field: {raw_step}")
 
             tool_hint = raw_step.get("tool_hint", "") or ""
             # If the planner hallucinated a tool name, keep it but warn —
@@ -149,7 +153,18 @@ class Planner:
             rubric = raw_step.get("rubric") or None
             depends_on = raw_step.get("depends_on") or []
 
+            if not isinstance(depends_on, list):
+                raise PlannerError(f"Step '{raw_step['id']}' has malformed 'depends_on' field. Expected a list, got {type(depends_on).__name__}")
+            
+            for dep in depends_on:
+                if not isinstance(dep, str):
+                    raise PlannerError(
+                        f"Step '{raw_step['id']}' has malformed 'depends_on' field. "
+                        f"Expected a list of string IDs, but found a non-string value: {dep!r}"
+                    )
+
             step = Step(
+                step_id=raw_step["id"],
                 description=raw_step["description"],
                 tool_hint=tool_hint,
                 depends_on=depends_on,

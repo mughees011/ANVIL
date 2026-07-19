@@ -65,15 +65,17 @@ def mock_groq_plan():
     plan_json = json.dumps({
         "steps": [
             {
+                "id": "step_1",
                 "description": "Search for information",
                 "tool_hint": "example_tool",
                 "depends_on": [],
                 "rubric": None,
             },
             {
+                "id": "step_2",
                 "description": "Synthesise the result",
                 "tool_hint": "",
-                "depends_on": [],
+                "depends_on": ["step_1"],
                 "rubric": None,
             },
         ]
