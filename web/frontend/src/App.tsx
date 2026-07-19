@@ -12,6 +12,30 @@ function App() {
   const [traces, setTraces] = useState<TraceData[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const API_BASE = import.meta.env.VITE_API_URL || "";
+
+  useEffect(() => {
+    // Attempt to fetch from API on mount
+    fetch(`${API_BASE}/api/runs`)
+      .then(res => {
+        if (!res.ok) throw new Error("API not available");
+        return res.json();
+      })
+      .then(async (summaries: any[]) => {
+        // Fetch full traces for each summary
+        const fullTraces = await Promise.all(
+          summaries.map(s => 
+            fetch(`${API_BASE}/api/runs/${s.run_id}`).then(r => r.json())
+          )
+        );
+        setTraces(fullTraces);
+      })
+      .catch(err => {
+        console.log("Not running in live-server mode or API unavailable:", err);
+      });
+  }, [API_BASE]);
 
   const handleFiles = useCallback((files: FileList | File[]) => {
     Array.from(files).forEach(file => {

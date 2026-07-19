@@ -1,0 +1,8 @@
+name: scaffold_agent
+planner_model: "llama-3.3-70b-versatile"
+executor_model: "llama-3.3-70b-versatile"
+max_retries: 3
+memory_top_k: 5
+halt_on_failure: true
+allow_shell_tool: true
+shell_jail_dir: "./jail"
