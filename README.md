@@ -43,11 +43,11 @@ Running `anvil run research_agent "What caused the 2008 financial crisis?" --ver
   4. Synthesize cited answer
 
 → Step 1/4: Search for background on 2008 financial crisis
-  … calling tool: web_search(query="2008 financial crisis causes")
+  … calling tool: wikipedia_search(query="2008 financial crisis causes")
   ✓ Step 1 complete (rule check passed)
 
 → Step 2/4: Read top 3 results
-  … calling tool: web_search + fetch (x3)
+  … calling tool: wikipedia_search (x3)
   ✓ Step 2 complete
 
 → Step 3/4: Remember key facts

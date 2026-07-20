@@ -8,7 +8,7 @@ First, create a Pydantic `BaseModel` that strictly defines the inputs to your to
 ```python
 from pydantic import BaseModel
 
-class WebSearchParams(BaseModel):
+class WikipediaSearchParams(BaseModel):
     query: str
 ```
 
@@ -18,9 +18,9 @@ Next, write your Python function and decorate it.
 ```python
 from anvil.tools.registry import tool
 
-@tool(params_schema=WebSearchParams)
-def web_search(query: str) -> str:
-    """Search the web for the given query and return a summary."""
+@tool(params_schema=WikipediaSearchParams)
+def wikipedia_search(query: str) -> str:
+    """Search Wikipedia for the given query and return a summary."""
     # Your logic here
     return "Results for " + query
 ```
