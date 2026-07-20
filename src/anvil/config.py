@@ -19,6 +19,17 @@ from pydantic import BaseModel, Field, model_validator
 class ConfigError(Exception):
     """Raised for missing or invalid configuration — fails fast before any API call."""
 
+def get_project_root() -> Path:
+    """Find the project root by walking upward looking for pyproject.toml.
+    
+    If not found, falls back to the current working directory.
+    """
+    current = Path.cwd().resolve()
+    for directory in [current] + list(current.parents):
+        if (directory / "pyproject.toml").exists():
+            return directory
+    return current
+
 
 class AgentConfig(BaseModel):
     name: str

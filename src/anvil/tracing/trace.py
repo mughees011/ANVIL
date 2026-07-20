@@ -19,9 +19,12 @@ from typing import Optional
 from rich.console import Console
 from rich.text import Text
 
+from anvil.config import get_project_root
 from anvil.planning.models import Plan, StepResult, StepStatus
 
-_RUNS_DIR = Path(".anvil/runs")
+def _get_runs_dir() -> Path:
+    return get_project_root() / ".anvil" / "runs"
+
 _console = Console()
 
 
@@ -174,8 +177,9 @@ class RunTrace:
 
     def _write(self) -> Path:
         """Write the trace JSON to .anvil/runs/{run_id}.json."""
-        _RUNS_DIR.mkdir(parents=True, exist_ok=True)
-        out_path = _RUNS_DIR / f"{self.run_id}.json"
+        runs_dir = _get_runs_dir()
+        runs_dir.mkdir(parents=True, exist_ok=True)
+        out_path = runs_dir / f"{self.run_id}.json"
         data = self.to_dict()
         out_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         return out_path

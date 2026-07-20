@@ -15,6 +15,8 @@ import chromadb
 from chromadb.config import Settings
 from pydantic import BaseModel
 
+from anvil.config import get_project_root
+
 
 class MemoryHit(BaseModel):
     """A single result from a memory recall query."""
@@ -36,8 +38,12 @@ class MemoryStore:
     EPISODIC = "episodic"
     SEMANTIC = "semantic"
 
-    def __init__(self, agent_name: str, chroma_path: str | Path = ".anvil/chroma/") -> None:
+    def __init__(self, agent_name: str, chroma_path: Optional[str | Path] = None) -> None:
         self.agent_name = agent_name
+        
+        if chroma_path is None:
+            chroma_path = get_project_root() / ".anvil" / "chroma"
+            
         self._client = chromadb.PersistentClient(
             path=str(chroma_path),
             settings=Settings(anonymized_telemetry=False),

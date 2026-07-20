@@ -1,380 +1,103 @@
 # Anvil
 
-> A local-first Python framework for building AI agents with planning, memory, tool calling, and self-healing.
+> A local-first Python framework for building AI agents with planning, memory, tool calling, and self-healing. I built my own orchestration layer so you don't have to.
 
-Anvil is a lightweight, open-source framework that helps developers build capable AI agents without relying on heavyweight orchestration frameworks. It provides the core building blocks needed to create intelligent, multi-step agents that can plan tasks, use tools, remember information, evaluate their own work, and recover from failures.
+## 60-Second Quickstart
 
-Instead of acting as another chatbot wrapper, Anvil focuses on agent orchestration. It gives developers complete control over how agents think, execute, and improve while keeping the codebase small, readable, and easy to extend.
+```bash
+# 1. Install the framework
+pip install -e .
 
----
+# 2. Setup your API key
+cp .env.example .env
+# Edit .env and paste your GROQ_API_KEY
 
-# Vision
+# 3. Scaffold a new agent
+anvil init my_agent
+# This creates my_agent/agent.py, my_agent/tools.py, and my_agent/anvil.config.yaml
 
-Modern AI agents often depend on large frameworks that hide important logic behind layers of abstraction. While those frameworks provide many features, they also introduce complexity, reduce flexibility, and make debugging difficult.
+# 4. Write your tools
+# Edit my_agent/tools.py to add Python functions decorated with @tool
 
-Anvil takes a different approach.
+# 5. Configure your agent
+# Edit my_agent/agent.py to import your tools and configure AgentRunner
 
-Its goal is to provide a minimal but powerful orchestration engine that developers can fully understand, customize, and extend. Every component is transparent, modular, and designed to solve one problem well.
+# 6. Run your agent
+anvil run my_agent "some task in plain English"
 
-The framework is built around one simple execution cycle:
-
-```
-Plan
-↓
-
-Execute
-
-↓
-
-Observe
-
-↓
-
-Evaluate
-
-↓
-
-Repair
-
-↓
-
-Complete
+# 7. View the trace of a past run
+anvil trace <run_id>
 ```
 
-This allows agents to perform real multi-step work instead of generating a single response.
+## Terminal Output Example
 
----
-
-# Why Anvil?
-
-Most existing frameworks focus on connecting prompts together.
-
-Anvil focuses on building intelligent execution systems.
-
-It provides:
-
-* Explicit task planning
-* Reliable tool execution
-* Persistent memory
-* Structured reasoning
-* Automatic retries
-* Self-healing execution
-* Full execution tracing
-
-Every decision made by the agent is inspectable.
-
-Nothing happens behind hidden abstractions.
-
----
-
-# Core Features
-
-## Multi-Step Planning
-
-Instead of immediately responding to a task, Anvil first creates an execution plan.
-
-Each plan consists of structured steps with dependencies and execution states.
-
-Example:
+Running `anvil run research_agent "What caused the 2008 financial crisis?" --verbose`:
 
 ```
-Task
+→ Task received: "What caused the 2008 financial crisis?"
+◆ Recalling relevant memory... (2 hits)
+→ Plan generated (4 steps)
+  1. Search for background on 2008 financial crisis
+  2. Read top 3 results
+  3. Remember key facts
+  4. Synthesize cited answer
 
-↓
+→ Step 1/4: Search for background on 2008 financial crisis
+  … calling tool: web_search(query="2008 financial crisis causes")
+  ✓ Step 1 complete (rule check passed)
 
-Create Plan
+→ Step 2/4: Read top 3 results
+  … calling tool: web_search + fetch (x3)
+  ✓ Step 2 complete
 
-↓
+→ Step 3/4: Remember key facts
+  ◆ memory.remember() x3
+  ✓ Step 3 complete
 
-Step 1
+→ Step 4/4: Synthesize cited answer
+  ✓ Step 4 complete
 
-↓
-
-Step 2
-
-↓
-
-Step 3
-
-↓
-
-Complete
+＝ Task complete. Trace saved to .anvil/runs/9f3a1c.json
 ```
 
-Plans are editable, inspectable, and reusable.
-
----
-
-## Tool Calling
-
-Agents interact with the outside world through tools.
-
-A tool is simply a Python function registered with Anvil.
-
-Example capabilities include:
-
-* Reading files
-* Writing files
-* Running shell commands
-* Calling APIs
-* Querying databases
-* Searching the web
-* Executing custom business logic
-
-Tool registration is fully typed using Pydantic schemas, making tool execution reliable and predictable.
-
----
-
-## Persistent Memory
-
-Anvil includes a local-first memory system powered by ChromaDB.
-
-Memory is divided into two layers.
-
-### Episodic Memory
-
-Stores temporary context during the current task.
-
-### Semantic Memory
-
-Stores long-term knowledge across tasks.
-
-Agents can retrieve relevant information whenever needed, allowing them to improve over time without requiring a hosted database.
-
----
-
-## Self-Healing Execution
-
-Failures are expected.
-
-Anvil detects them automatically.
-
-Whenever a step fails, the framework can:
-
-* Analyze the failure
-* Update the execution context
-* Repair the plan
-* Retry execution
-* Continue where it left off
-
-This makes long-running workflows significantly more reliable.
-
----
-
-## Quality Verification
-
-Every completed step can be verified before execution continues.
-
-Verification methods include:
-
-* Rule-based validation
-* Schema validation
-* LLM evaluation
-* Custom validators
-
-If verification fails, Anvil automatically enters its self-healing loop.
-
----
-
-## Execution Tracing
-
-Every task produces a complete execution trace.
-
-The trace contains:
-
-* Planning decisions
-* Tool calls
-* Inputs
-* Outputs
-* Memory retrievals
-* Retry attempts
-* Quality checks
-* Execution time
-
-This makes debugging simple and provides complete transparency into agent behavior.
-
----
-
-# Architecture
-
-The framework follows a modular architecture.
+## Architecture
 
 ```
-User Task
-     │
-     ▼
-Agent Runner
-     │
-     ▼
-Planner
-     │
-     ▼
-Executor
-     │
-     ▼
-Tool Registry
-     │
-     ▼
-Observation
-     │
-     ▼
-Quality Engine
-     │
-     ▼
-Passed?
- ├───────────────┐
- │ Yes           │ No
- ▼               ▼
-Complete   Self-Healing
-                 │
-                 ▼
-             Retry Step
+                     ┌─────────────┐
+   Task (string) --> │   Planner   │ <-- Memory (recall)
+                     └──────┬──────┘
+                            │ Plan (Steps)
+                            v
+                     ┌─────────────┐
+                     │  Executor   │ <-- Tool Registry
+                     └──────┬──────┘
+                            │ StepResult
+                            v
+                     ┌──────────────────┐
+                     │ QualityEnforcer  │
+                     └──────┬───────────┘
+                       pass │  fail
+                            │     └──────────┐
+                            v                v
+                        (next Step)   ┌─────────────────┐
+                                      │ SelfHealingEngine│
+                                      └────────┬─────────┘
+                                               │ retry / re-plan
+                                               v
+                                        (back to Executor
+                                         or Planner)
 ```
 
-Each component has a single responsibility, making the system easy to maintain and extend.
+## Documentation
 
----
+- [Architecture Guide](docs/architecture.md)
+- [Memory Guide](docs/memory.md)
+- [Writing a Tool](docs/writing_a_tool.md)
+- [Writing an Agent](docs/writing_an_agent.md)
+- [FAQ](docs/faq.md)
 
-# Design Principles
+## License and Contributing
 
-Anvil follows a small set of engineering principles.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-## Local First
-
-Everything should work without cloud infrastructure except the selected language model.
-
-## Explicit Over Magic
-
-Framework behavior should always be understandable.
-
-## Modular
-
-Every subsystem should be replaceable.
-
-## Readable
-
-Developers should understand the entire framework within a few hours.
-
-## Developer First
-
-The framework should improve productivity without sacrificing flexibility.
-
----
-
-# Included Components
-
-The framework includes:
-
-* Agent Runner
-* Planner
-* Executor
-* Tool Registry
-* Memory Manager
-* Quality Engine
-* Self-Healing Engine
-* Prompt Manager
-* Configuration Manager
-* Logging System
-* Execution Tracer
-* CLI
-* Example Agents
-
----
-
-# Example Agents
-
-Anvil ships with practical examples demonstrating different use cases.
-
-### Research Agent
-
-Performs research, gathers information, stores useful findings in memory, and generates structured answers.
-
-### Scaffold Agent
-
-Plans software projects, generates files, validates output, and repairs failures automatically.
-
-These examples demonstrate how the framework can be adapted to different domains without changing its core architecture.
-
----
-
-# Technology Stack
-
-* Python 3.12+
-* Groq API
-* ChromaDB
-* Pydantic v2
-* Typer
-* Rich
-* Loguru
-* httpx
-* pytest
-* Ruff
-* Black
-* MyPy
-* uv
-
----
-
-# Goals
-
-Anvil aims to become a lightweight alternative to heavyweight AI orchestration frameworks.
-
-The project focuses on:
-
-* Clean architecture
-* High performance
-* Local-first development
-* Transparent execution
-* Excellent developer experience
-* Open-source collaboration
-
----
-
-# Roadmap
-
-### Version 1.0
-
-* Agent orchestration
-* Tool calling
-* Memory system
-* Multi-step planning
-* Self-healing
-* Execution tracing
-* Example agents
-* Documentation
-
-### Future Versions
-
-* Multiple LLM providers
-* Parallel task execution
-* Multi-agent collaboration
-* Plugin marketplace
-* Visual workflow editor
-* Remote execution
-* Distributed workers
-
----
-
-# Philosophy
-
-Anvil is built around one belief:
-
-> AI agents should be understandable, predictable, and extensible.
-
-Developers should own the orchestration layer instead of depending on opaque abstractions.
-
-The framework exists to provide the core intelligence behind AI agents while remaining simple enough to read, modify, and extend.
-
----
-
-# License
-
-MIT License
-
----
-
-# Status
-
-🚧 Currently under active development.
-
-Contributions, feedback, and ideas are welcome.
+Anvil is released under the MIT License. Contributions, pull requests, and bug reports are welcome.
